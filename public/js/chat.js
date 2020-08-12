@@ -35,17 +35,10 @@ const autoscroll = () =>{
     }
 }
 
-socket.on('MSG', (x) =>{
-    console.log(x)
-   
-    const html = Mustache.render(messageTemplate,{
-        name:x.username,
-        message:x.msg,
-        time:moment(x.time).format('HH'+":"+'mm')
-    })
-    $messages.insertAdjacentHTML('beforeend',html)
-    autoscroll()
-})
+
+
+
+
 
 socket.on('locationMessage',(url) =>{
     console.log(url)
@@ -114,3 +107,73 @@ socket.on('roomData',({room,users}) =>{
     console.log(users)
     document.querySelector('#sidebar').innerHTML = html
 }) 
+
+
+const videoGrid = document.getElementById('video_main')
+const myPeer = new Peer(undefined, {
+  path: '/peerjs',
+  host: '/',
+  port: '443'
+})
+let myVideoStream;
+const myVideo = document.createElement('video')
+myVideo.muted = true;
+
+navigator.mediaDevices.getUserMedia({
+  video: true,
+  audio: true
+}).then(stream => {
+  myVideoStream = stream;
+  addVideoStream(myVideo, stream)
+
+  myPeer.on('call', call => {
+      console.log("call answred")
+    call.answer(stream)
+    const video = document.createElement('video')
+    call.on('stream', userVideoStream => {
+      addVideoStream(video, userVideoStream)
+    })
+  })
+  
+socket.on('MSG', (x) =>{
+    
+   
+    const html = Mustache.render(messageTemplate,{
+        name:x.username,
+        message:x.msg,
+        time:moment(x.time).format('HH'+":"+'mm')
+    })
+    $messages.insertAdjacentHTML('beforeend',html)
+
+    autoscroll()
+    connectToNewUser(x.username, stream)
+})
+});
+  
+
+
+
+myPeer.on('open', id => {
+  socket.emit('join-room', ROOM_ID, id)
+})
+
+function connectToNewUser(userId, stream) {
+   
+  const call = myPeer.call(userId, stream)
+  console.log(call,"call ans")
+  const video = document.createElement('video')
+  call.on('stream', userVideoStream => {
+    addVideoStream(video, userVideoStream)
+  })
+  
+}
+
+function addVideoStream(video, stream) {
+  video.srcObject = stream
+  video.addEventListener('loadedmetadata', () => {
+    video.play()
+  })
+  videoGrid.append(video)
+}
+
+
