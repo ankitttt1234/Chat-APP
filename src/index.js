@@ -43,11 +43,11 @@ io.on('connection', (socket) => {
            return callback(error)
             
         }
-       
+       console.log(user)
         socket.join(user.room)
         //socket.to(user.room).broadcast.emit('user-connected', user.username)
-        socket.emit('MSG', generateMessage("Admin",'Welcome!'));
-        socket.broadcast.to(user.room).emit('MSG',generateMessage("Admin",`${user.username} has joined`));
+        
+        socket.broadcast.to(user.room).emit('MSG',generateMessage(user.username,"Hi all"));
         io.to(user.room).emit('roomData',{
           room:user.room,
           users:getUsersInRoom(user.room)

@@ -104,7 +104,7 @@ socket.on('roomData',({room,users}) =>{
         room,
         users
     })
-    console.log(users)
+    
     document.querySelector('#sidebar').innerHTML = html
 }) 
 
@@ -143,6 +143,8 @@ socket.on('MSG', (x) =>{
         message:x.msg,
         time:moment(x.time).format('HH'+":"+'mm')
     })
+
+    console.log(x)
     $messages.insertAdjacentHTML('beforeend',html)
 
     autoscroll()
@@ -160,7 +162,7 @@ myPeer.on('open', id => {
 function connectToNewUser(userId, stream) {
    
   const call = myPeer.call(userId, stream)
-  console.log("this is ",call,"call ans")
+  console.log(userId)
   const video = document.createElement('video')
   call.on('stream', userVideoStream => {
     addVideoStream(video, userVideoStream)
