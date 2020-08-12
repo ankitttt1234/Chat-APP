@@ -145,6 +145,7 @@ socket.on('MSG', (x) =>{
     })
 
     console.log(x)
+    document.querySelector.getElementById('name').value=x.username;
     $messages.insertAdjacentHTML('beforeend',html)
 
     autoscroll()
@@ -156,7 +157,8 @@ socket.on('MSG', (x) =>{
 
 
 myPeer.on('open', id => {
-  socket.emit('join-room', ROOM_ID, id)
+  var ROOM_ID = document.getElementById('name').value;
+  socket.emit('join', ROOM_ID, id)
 })
 
 function connectToNewUser(userId, stream) {
