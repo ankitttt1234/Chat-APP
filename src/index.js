@@ -26,34 +26,29 @@ app.use('/peerjs',peerServer);
 
 
 io.on('connection', (socket) => {
-
-
     console.log("New webscoket connection");
-
-
-   
-
 
     socket.on('join', ({username,room}, callback) =>{
         const {error,user}=addUser({id: socket.id,username,room})
        
-        
-
         if(error){
            return callback(error)
             
         }
        console.log(user)
         socket.join(user.room)
-        //socket.to(user.room).broadcast.emit('user-connected', user.username)
         
-        socket.broadcast.to(user.room).emit('MSG',generateMessage(user.username,"Hi all"));
+        io.to(user.room).emit('MSG',generateMessage("Admin",`${user.username} has joined`));
         io.to(user.room).emit('roomData',{
           room:user.room,
           users:getUsersInRoom(user.room)
         })
         callback()
     })
+
+    socket.on('join-room', (roomId, userId) =>{
+      socket.to(roomId).broadcast.emit('user-connected', userId)
+  })
 
     socket.on('sendMessage',(msg,callback) =>{
       const user = getUser(socket.id)

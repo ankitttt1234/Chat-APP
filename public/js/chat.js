@@ -34,7 +34,22 @@ const autoscroll = () =>{
 
     }
 }
+socket.on('MSG', (x) =>{
+    
+  
+  const html = Mustache.render(messageTemplate,{
+      name:x.username,
+      message:x.msg,
+      time:moment(x.time).format('HH'+":"+'mm')
+  })
+  document.getElementById('name').value=x.username;
+  document.getElementById('room').value=x.room;
+  console.log(document.getElementById('name').value,  document.getElementById('room').value)
+  $messages.insertAdjacentHTML('beforeend',html)
 
+  autoscroll()
+  
+});
 
 
 
@@ -60,7 +75,7 @@ $messageForm.addEventListener('submit',(event) => {
     var msg = event.target.message.value
     socket.emit('sendMessage',msg ,(err) =>{
         $messageFormButton.removeAttribute('disabled') 
-        $messageFormInput.value = ' '
+        $messageFormInput.value = ''
         $messageFormInput.focus()
    
         if(err){
@@ -125,46 +140,32 @@ navigator.mediaDevices.getUserMedia({
 }).then(stream => {
   myVideoStream = stream;
   addVideoStream(myVideo, stream)
-
   myPeer.on('call', call => {
-      console.log("call answred")
     call.answer(stream)
     const video = document.createElement('video')
     call.on('stream', userVideoStream => {
       addVideoStream(video, userVideoStream)
     })
   })
-  
-socket.on('MSG', (x) =>{
-    
-   
-    const html = Mustache.render(messageTemplate,{
-        name:x.username,
-        message:x.msg,
-        time:moment(x.time).format('HH'+":"+'mm')
-    })
 
-    console.log(x)
-    document.querySelector.getElementById('name').value=x.username;
-    $messages.insertAdjacentHTML('beforeend',html)
-
-    autoscroll()
-    connectToNewUser(x.username, stream)
-})
+  socket.on('user-connected', userId => {
+    connectToNewUser(userId, stream)
+  })
 });
   
+
+ 
 
 
 
 myPeer.on('open', id => {
-  var ROOM_ID = document.getElementById('name').value;
-  socket.emit('join', ROOM_ID, id)
+  var ROOM_ID =   document.getElementById('room').value;
+  socket.emit('join-room', ROOM_ID, id)
 })
 
 function connectToNewUser(userId, stream) {
    
   const call = myPeer.call(userId, stream)
-  console.log(userId)
   const video = document.createElement('video')
   call.on('stream', userVideoStream => {
     addVideoStream(video, userVideoStream)
@@ -173,7 +174,7 @@ function connectToNewUser(userId, stream) {
 }
 
 function addVideoStream(video, stream) {
-  video.srcObject = stream
+  video.srcObject = stream;
   video.addEventListener('loadedmetadata', () => {
     video.play()
   })
